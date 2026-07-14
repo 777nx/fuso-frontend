@@ -4,10 +4,12 @@ import IndexPage from "@/pages/IndexPage.vue";
 const routes: Array<RouteRecordRaw> = [
   {
     path: "/",
+    name: "home",
     component: IndexPage,
   },
   {
     path: "/:category",
+    name: "category",
     component: IndexPage,
   },
 ];

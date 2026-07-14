@@ -13,7 +13,7 @@
         <PostList :postList="postList" />
       </a-tab-pane>
       <a-tab-pane key="picture" tab="图片" force-render>
-        <PictureList />
+        <PictureList :picture-list="pictureList" />
       </a-tab-pane>
       <a-tab-pane key="user" tab="用户">
         <UserList :userList="userList" />
@@ -32,16 +32,8 @@ import { useRoute, useRouter } from "vue-router";
 import myAxios from "@/plugins/myAxios";
 
 const postList = ref([]);
-
-myAxios.post("/post/list/page/vo", {}).then((res) => {
-  postList.value = res?.records;
-});
-
 const userList = ref([]);
-
-myAxios.post("/user/list/page/vo", {}).then((res) => {
-  userList.value = res?.records;
-});
+const pictureList = ref([]);
 
 const route = useRoute();
 const router = useRouter();
@@ -62,7 +54,55 @@ const initSearchParams = {
   pageNum: 1,
 };
 
+/**
+ * 加载数据
+ * @param params
+ */
+const loadDataOld = (params: any) => {
+  const postQuery = {
+    ...params,
+    searchText: params.text,
+  };
+  myAxios.post("/post/list/page/vo", postQuery).then((res) => {
+    postList.value = res?.records;
+  });
+
+  const pictureQuery = {
+    ...params,
+    searchText: params.text,
+  };
+  myAxios.post("/picture/list/page/vo", pictureQuery).then((res) => {
+    pictureList.value = res?.records;
+  });
+
+  const userQuery = {
+    ...params,
+    userName: params.text,
+  };
+  myAxios.post("/user/list/page/vo", userQuery).then((res) => {
+    userList.value = res?.records;
+  });
+};
+
+/**
+ * 加载数据
+ * @param params
+ */
+const loadData = (params: any) => {
+  const query = {
+    ...params,
+    searchText: params.text,
+  };
+  myAxios.post("/search/all", query).then((res: any) => {
+    postList.value = res?.postList;
+    pictureList.value = res?.pictureList;
+    userList.value = res?.userList;
+  });
+};
+
 const searchParams = ref(initSearchParams);
+// 首次请求
+loadData(initSearchParams);
 
 watchEffect(() => {
   searchParams.value = {
@@ -75,10 +115,12 @@ const onSearch = (value: string) => {
   router.push({
     query: searchParams.value,
   });
+  loadData(searchParams.value);
 };
 
 const onTabChange = (key: string) => {
   router.push({
+    name: "category",
     params: {
       category: key,
     },
